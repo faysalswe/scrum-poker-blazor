@@ -1,0 +1,103 @@
+﻿@page "/{RoomId}/{UserId}"
+@using ScrumPoker.Model
+@inject AppDBContext DbContext
+
+<div class="row mt-2">
+    <div class="col">
+        <div class="d-flex justify-content-around">
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(0.5, args)"> 0.5 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(1, args)"> 1 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(2, args)"> 2 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(3, args)"> 3 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(5, args)"> 5 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(8, args)"> 8 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(13, args)"> 13 </div>
+            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(21, args)"> 21 </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-around mt-2">
+    <button class="btn btn-outline-secondary"> Share </button>
+    <button class="btn btn-outline-secondary"> Show </button>
+    <button class="btn btn-outline-secondary" @onclick="UpdateUserPoint"> Refresh </button>
+
+    <EditForm Model=@card>
+        <div class="row">
+            <div class="col">
+                <InputText @bind-Value=card.Name type="text" class="form-control" />
+            </div>
+            <div class="col">
+                <InputNumber @bind-Value=card.Point type=" " class="form-control"/>
+            </div>
+            <div class="col">
+                <button class="btn btn-outline-primary" @onclick="addCard"> Add </button>
+            </div>
+        </div>
+    </EditForm>
+
+</div>
+
+<div class="mt-2">
+    <div class="row">
+        <div class="col">
+            <div class="list-group">
+                @foreach (var user in users)
+                {
+                    <div class="list-group-item d-flex">
+                        <div class="d-flex justify-content-between">
+                            <div> @user.FullName </div>--------------->
+                            <div> @user.Point </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col">
+            <ul class="list-group">
+                @foreach (var card in cards)
+                {
+                    <li class="list-group-item">@card.Name --->  @card.Point |</li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    [Parameter]
+    public string RoomId { get; set; }
+
+    private List<User> users = new List<User>();
+    private List<Card> cards = new List<Card>();
+    private Card card = new Card();
+
+    private void SetPoint(double point, MouseEventArgs args)
+    {
+        var user = users.FirstOrDefault(x => x.Id == UserId);
+        if (user != null) user.Point = point;
+        DbContext.Update(user);
+        DbContext.SaveChanges();
+    }
+
+    private void addCard ()
+    {
+        DbContext.Cards.Add(card);
+        DbContext.SaveChanges();
+    }
+
+    private void UpdateUserPoint()
+    {
+        users = DbContext.Users.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
+    }
+
+    protected override void OnInitialized()
+    {
+        users = DbContext.Users.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
+        cards = DbContext.Cards.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
+    }
+}

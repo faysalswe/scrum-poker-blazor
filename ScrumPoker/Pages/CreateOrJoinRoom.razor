@@ -1,0 +1,47 @@
+﻿@page "/create-join"
+@page "/create-join/{RoomId}"
+@using ScrumPoker.Model
+@inject AppDBContext DbContext
+@inject NavigationManager NavigationManager
+
+<EditForm Model=@user style="margin-top: 40vh">
+    <div class="row">
+        <div class="col">
+            <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="zamank"/>
+        </div>
+        <div class="col">
+            <InputText @bind-Value=user.FullName type="text" class="form-control" placeholder="Kaiynath Zaman"/>
+        </div>
+        <div class="col">
+            <button class="btn btn-outline-primary" @onclick="createOrJoin"> @ButtonName </button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public string RoomId { get; set; }
+
+    private User user = new User();
+
+    private string ButtonName => this.RoomId == null ? "Create" : "Join";
+
+    private void createOrJoin() {
+
+        if (RoomId == null)
+        {
+            user.Room = new Room { CreatedAt = DateTime.UtcNow };
+            DbContext.Users.Add(user);
+
+        } else
+        {
+            user.RoomId = Convert.ToInt32(RoomId);
+            DbContext.Users.Add(user);
+        }
+
+        DbContext.SaveChanges();
+
+        NavigationManager.NavigateTo($"/{user.RoomId}/{user.Id}");
+    }
+}
