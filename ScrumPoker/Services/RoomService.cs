@@ -20,11 +20,30 @@ namespace ScrumPoker.Services
             await _dbContext.SaveChangesAsync();
             return room;
         }
+
+        public async Task<Room> Get(string Id)
+        {
+            return await _dbContext.Rooms.FindAsync(Id);
+        }
+
+        public async Task<Room> Update(Room room)
+        {
+            User model = _dbContext.Users.Local.FirstOrDefault(e => e.Id == room.Id);
+            if (model != null)
+            {
+                _dbContext.Entry(model).State = EntityState.Detached;
+            }
+            _dbContext.Update(room);
+            await _dbContext.SaveChangesAsync();
+            return room;
+        }
     }
 
     public interface IRoomService
     {
         Task<Room> Add(Room room);
+        Task<Room> Update(Room room);
+        Task<Room> Get(string Id);
     }
 
 }

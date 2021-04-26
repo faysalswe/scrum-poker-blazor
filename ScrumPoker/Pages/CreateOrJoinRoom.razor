@@ -35,13 +35,13 @@
 
         if (RoomId == null)
         {
-            user.Room = new Room { CreatedAt = DateTime.UtcNow };
+            user.Room = new Room { CreatedAt = DateTime.UtcNow, IsShowPoint = false };
             user.IsAdmin = true;
             _userService.Add(user);
         }
         else
         {
-            user.RoomId = Convert.ToInt32(RoomId);
+            user.RoomId = RoomId;
             _userService.Add(user);
         }
 

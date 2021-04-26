@@ -27,7 +27,7 @@ namespace ScrumPoker.Services
             _dbContext.Cards.Remove(card);
         }
 
-        public async Task<List<Card>> GetCardsBy(int roomId)
+        public async Task<List<Card>> GetCardsBy(string roomId)
         {
             return await _dbContext.Cards
                 .Where(x => x.RoomId == roomId)
@@ -46,7 +46,7 @@ namespace ScrumPoker.Services
     public interface ICardService
     {
         Task<Card> AddCard(Card card);
-        Task<List<Card>> GetCardsBy(int roomId);
+        Task<List<Card>> GetCardsBy(string roomId);
         Task<Card> UpdateCard(Card card);
         Task DeleteCard(Card card);
     }

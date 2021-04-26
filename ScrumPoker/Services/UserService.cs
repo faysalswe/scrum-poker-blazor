@@ -26,10 +26,12 @@ namespace ScrumPoker.Services
         {
             try
             {
-                if (!_dbContext.Users.Local.Any(e => e.Id == user.Id))
+                User model = _dbContext.Users.Local.FirstOrDefault(e => e.Id == user.Id);
+                if (model != null)
                 {
-                    _dbContext.Entry(user).State = EntityState.Modified;
-                } 
+                    _dbContext.Entry(model).State = EntityState.Detached;
+                }
+                _dbContext.Update(user);
                 await _dbContext.SaveChangesAsync();
                 return user;
             }
@@ -39,8 +41,9 @@ namespace ScrumPoker.Services
             }
         }
 
-        public async Task<List<User>> GetUsersBy(int roomId)
+        public async Task<List<User>> GetUsersBy(string roomId)
         {
+            _dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             return await _dbContext.Users
                 .Where(x => x.RoomId == roomId)
                 .AsNoTracking()
@@ -51,13 +54,20 @@ namespace ScrumPoker.Services
         {
             try
             {
+                List<User> models = _dbContext.Users.Local.ToList();
+
+                foreach (var model in models)
+                {
+                    _dbContext.Entry(model).State = EntityState.Detached;
+                }
+            
                 _dbContext.UpdateRange(users);
                 await _dbContext.SaveChangesAsync();
                 return users;
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
     }
@@ -65,7 +75,7 @@ namespace ScrumPoker.Services
     public interface IUserService
     {
         Task<User> Add(User user);
-        Task<List<User>> GetUsersBy(int roomId);
+        Task<List<User>> GetUsersBy(string roomId);
         Task<User> Update(User user);
         Task<List<User>> Update(List<User> users);
     }

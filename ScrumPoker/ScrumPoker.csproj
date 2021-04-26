@@ -13,7 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="db\" />
     <Folder Include="wwwroot\css\bootstrap\fonts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="db\scrum_poker.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

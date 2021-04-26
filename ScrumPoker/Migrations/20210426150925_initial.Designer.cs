@@ -9,7 +9,7 @@ using ScrumPoker.Model;
 namespace ScrumPoker.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20210426041208_initial")]
+    [Migration("20210426150925_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,8 +31,8 @@ namespace ScrumPoker.Migrations
                     b.Property<double>("Point")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("RoomId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RoomId")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -43,18 +43,15 @@ namespace ScrumPoker.Migrations
 
             modelBuilder.Entity("ScrumPoker.Model.Room", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("IsShowPoint")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -74,14 +71,11 @@ namespace ScrumPoker.Migrations
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsShowPoint")
-                        .HasColumnType("INTEGER");
-
                     b.Property<double>("Point")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("RoomId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RoomId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -98,9 +92,7 @@ namespace ScrumPoker.Migrations
                 {
                     b.HasOne("ScrumPoker.Model.Room", "Room")
                         .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoomId");
 
                     b.Navigation("Room");
                 });
@@ -109,9 +101,7 @@ namespace ScrumPoker.Migrations
                 {
                     b.HasOne("ScrumPoker.Model.Room", "Room")
                         .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoomId");
 
                     b.Navigation("Room");
                 });

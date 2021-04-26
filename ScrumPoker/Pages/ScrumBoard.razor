@@ -31,7 +31,7 @@
             {
                 <button class="btn btn-primary" @onclick="clearPoint"> <i class="bi bi-eraser-fill"></i> Clear </button>
                 <button class="btn btn-primary" @onclick="togglePoint">
-                    @if (isShowPoint)
+                    @if (room.IsShowPoint)
                     {
                         <i class="bi bi-eye-slash-fill"></i> <span> Hide</span>
                     }
@@ -49,7 +49,7 @@
         @if (user.IsAdmin)
         {
             <EditForm Model=@card>
-            <DataAnnotationsValidator />
+                <DataAnnotationsValidator />
                 <div class="row">
                     <div class="col-7">
                         <InputText @bind-Value=card.Name type="text" class="form-control" />
@@ -87,14 +87,10 @@
                             {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person"></i></span>}
                             else
                             {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person-fill"></i></span>}
-                            @user.FullName
+                        <span class="@(user.Id == UserId ? "user-indication" : "")"> @user.FullName </span> 
                         </div>
                         <div>
-                            @if (user.Id == UserId)
-                            {
-                                @user.Point
-                            }
-                            else if (!user.IsShowPoint && user.Point == 0)
+                            @if (user.Point == 0)
                             {
                                 <i class="bi bi-hourglass-split"></i>
                             }
@@ -102,14 +98,15 @@
                             {
                                 <i class="bi bi-x-octagon-fill"></i>
                             }
-                            else if (user.IsShowPoint && user.Point > 0)
+                            else if (user.Id == UserId || room.IsShowPoint)
                             {
                                 @user.Point
                             }
-                            else if (!user.IsShowPoint && user.Point > 0)
+                            else if (!room.IsShowPoint && user.Point > 0)
                             {
                                 <i class="bi bi-eye-slash-fill"></i>
                             }
+
                         </div>
                     </div>
                 }
@@ -145,9 +142,9 @@
     private List<Card> cards = new List<Card>();
     private Card card = new Card();
     private User user = new User();
+    private Room room = new Room();
     private double sum = 0;
     private bool isCardEdit = false;
-    private bool isShowPoint = false;
 
     private async Task SetPoint(double point, MouseEventArgs args)
     {
@@ -196,7 +193,7 @@
         if (!string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
         {
             card.Id = 0;
-            card.RoomId = Convert.ToInt32(RoomId);
+            card.RoomId = RoomId;
             await _cardService.AddCard(card);
             cards.Add(card);
             sum = cards.Sum(x => x.Point);
@@ -206,21 +203,23 @@
 
     private async Task Refresh()
     {
-        users = await _userService.GetUsersBy(Convert.ToInt32(RoomId));
+        users = await _userService.GetUsersBy(RoomId);
+        room = await _roomService.Get(RoomId);
     }
 
     private async Task clearPoint()
     {
-        users.All(x => { x.Point = 0; x.IsShowPoint = false; return true; });
+        users.All(x => { x.Point = 0; return true; });
         await _userService.Update(users);
-        isShowPoint = false;
+        room.IsShowPoint = false;
+        await _roomService.Update(room);
     }
 
     private async Task togglePoint()
     {
-        isShowPoint = !isShowPoint;
-        users.All(x => { x.IsShowPoint = !x.IsShowPoint; return true; });
-        await _userService.Update(users);
+        await this.Refresh();
+        room.IsShowPoint = !room.IsShowPoint;
+        await _roomService.Update(room);
     }
 
     private async Task toggleAdmin(User adminUser, MouseEventArgs args)
@@ -246,9 +245,10 @@
 
     protected async override void OnInitialized()
     {
-        users = await _userService.GetUsersBy(Convert.ToInt32(RoomId));
-        cards = await _cardService.GetCardsBy(Convert.ToInt32(RoomId));
+        users = await _userService.GetUsersBy(RoomId);
+        cards = await _cardService.GetCardsBy(RoomId);
         user = users.FirstOrDefault(x => x.Id == UserId);
+        room = await _roomService.Get(RoomId);
         sum = cards.Sum(x => x.Point);
     }
 }

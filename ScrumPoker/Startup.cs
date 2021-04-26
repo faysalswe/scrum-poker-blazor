@@ -31,7 +31,7 @@ namespace ScrumPoker
             services.AddDbContext<AppDBContext>(options =>
             {
                 options.LogTo(x => Debug.Write(x));
-                options.UseSqlite("Data Source=scrum_poker.db");
+                options.UseSqlite("Data Source=./db/scrum_poker.db");
             });
 
             services.AddTransient<IUserService, UserService>();

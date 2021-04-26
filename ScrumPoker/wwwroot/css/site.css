@@ -2,6 +2,7 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: ghostwhite
 }
 
 a, .btn-link {
@@ -190,4 +191,10 @@ app {
 .point-card-text {
     font-size: 2.5rem;
     font-weight: 500;
+}
+
+
+.user-indication {
+   color: dodgerblue;
+   font-weight:bolder;
 }
