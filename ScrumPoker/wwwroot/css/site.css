@@ -1,4 +1,4 @@
-@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('bootstrap/bootstrap-icons.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -184,4 +184,10 @@ app {
 
 .pointer {
     cursor: pointer;
+}
+
+
+.point-card-text {
+    font-size: 2.5rem;
+    font-weight: 500;
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BlazorSignalR.Migrations
+namespace ScrumPoker.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -26,8 +26,9 @@ namespace BlazorSignalR.Migrations
                 name: "Cards",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
                     Point = table.Column<double>(type: "REAL", nullable: false),
                     RoomId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -47,9 +48,11 @@ namespace BlazorSignalR.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", nullable: true),
-                    FullName = table.Column<string>(type: "TEXT", nullable: true),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
+                    FullName = table.Column<string>(type: "TEXT", nullable: false),
                     Point = table.Column<double>(type: "REAL", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsShowPoint = table.Column<bool>(type: "INTEGER", nullable: false),
                     RoomId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

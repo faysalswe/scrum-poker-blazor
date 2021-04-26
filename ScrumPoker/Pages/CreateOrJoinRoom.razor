@@ -1,19 +1,22 @@
-﻿@page "/create-join"
-@page "/create-join/{RoomId}"
+﻿@page "/"
+@page "/{RoomId}"
 @using ScrumPoker.Model
-@inject AppDBContext DbContext
+@using ScrumPoker.Services
+@inject IUserService _userService
 @inject NavigationManager NavigationManager
 
-<EditForm Model=@user style="margin-top: 40vh">
+<EditForm Model=@user style="margin-top: 40vh" OnValidSubmit="@createOrJoin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
     <div class="row">
-        <div class="col">
-            <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="zamank"/>
+        <div class="col-5">
+            <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="Ex: username 'einstein_a'" />
         </div>
-        <div class="col">
-            <InputText @bind-Value=user.FullName type="text" class="form-control" placeholder="Kaiynath Zaman"/>
+        <div class="col-5">
+            <InputText @bind-Value=user.FullName type="text" class="form-control" placeholder="Ex: name 'Albert Einstein'" />
         </div>
-        <div class="col">
-            <button class="btn btn-outline-primary" @onclick="createOrJoin"> @ButtonName </button>
+        <div class="col-2">
+            <button class="btn btn-outline-primary" type="submit"> @ButtonName </button>
         </div>
     </div>
 </EditForm>
@@ -25,22 +28,22 @@
 
     private User user = new User();
 
-    private string ButtonName => this.RoomId == null ? "Create" : "Join";
+    private string ButtonName => this.RoomId == null ? "Create Room" : "Join Room";
 
-    private void createOrJoin() {
+    private void createOrJoin()
+    {
 
         if (RoomId == null)
         {
             user.Room = new Room { CreatedAt = DateTime.UtcNow };
-            DbContext.Users.Add(user);
-
-        } else
+            user.IsAdmin = true;
+            _userService.Add(user);
+        }
+        else
         {
             user.RoomId = Convert.ToInt32(RoomId);
-            DbContext.Users.Add(user);
+            _userService.Add(user);
         }
-
-        DbContext.SaveChanges();
 
         NavigationManager.NavigateTo($"/{user.RoomId}/{user.Id}");
     }

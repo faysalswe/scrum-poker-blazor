@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ScrumPoker.Services;
 
 namespace ScrumPoker
 {
@@ -32,6 +33,10 @@ namespace ScrumPoker
                 options.LogTo(x => Debug.Write(x));
                 options.UseSqlite("Data Source=scrum_poker.db");
             });
+
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<ICardService, CardService>();
+            services.AddTransient<IRoomService, RoomService>();
 
             services.AddRazorPages();
             services.AddServerSideBlazor();

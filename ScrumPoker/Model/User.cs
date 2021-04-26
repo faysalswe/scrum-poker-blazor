@@ -11,9 +11,13 @@ namespace ScrumPoker.Model
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+        [Required]
         public string UserName { get; set; }
+        [Required]
         public string FullName { get; set; }
         public double Point { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsShowPoint { get; set; }
 
         [ForeignKey("Room")]
         public int RoomId { get; set; }

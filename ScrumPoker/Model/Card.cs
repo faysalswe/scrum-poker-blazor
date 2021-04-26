@@ -10,8 +10,10 @@ namespace ScrumPoker.Model
     public class Card
     {
         [Key]
-        public string Id { get; set; }
+        public int Id { get; set; }
+        [Required]
         public string Name { get; set; }
+        [Required]
         public double Point { get; set; }
 
         [ForeignKey("Room")]

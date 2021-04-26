@@ -1,41 +1,78 @@
 ﻿@page "/{RoomId}/{UserId}"
 @using ScrumPoker.Model
-@inject AppDBContext DbContext
+@using ScrumPoker.Services
+@inject ICardService _cardService
+@inject IRoomService _roomService
+@inject IUserService _userService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <div class="row mt-2">
     <div class="col">
-        <div class="d-flex justify-content-around">
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(0.5, args)"> 0.5 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(1, args)"> 1 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(2, args)"> 2 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(3, args)"> 3 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(5, args)"> 5 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(8, args)"> 8 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(13, args)"> 13 </div>
-            <div class="card p-5 mx-2 pointer" @onclick="args => SetPoint(21, args)"> 21 </div>
+        <div class="d-flex justify-content-between">
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(0.5, args)"> 0.5 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(1, args)"> 1 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(2, args)"> 2 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(3, args)"> 3 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(5, args)"> 5 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(8, args)"> 8 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(13, args)"> 13 </div>
+            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(21, args)"> 21 </div>
         </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-around mt-2">
-    <button class="btn btn-outline-secondary"> Share </button>
-    <button class="btn btn-outline-secondary"> Show </button>
-    <button class="btn btn-outline-secondary" @onclick="UpdateUserPoint"> Refresh </button>
-
-    <EditForm Model=@card>
-        <div class="row">
-            <div class="col">
-                <InputText @bind-Value=card.Name type="text" class="form-control" />
-            </div>
-            <div class="col">
-                <InputNumber @bind-Value=card.Point type=" " class="form-control"/>
-            </div>
-            <div class="col">
-                <button class="btn btn-outline-primary" @onclick="addCard"> Add </button>
-            </div>
+<div class="row mt-2">
+    <div class="col-6">
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-primary" @onclick="copyTextToClipboard"> <i class="bi bi-link-45deg"></i> Copy Link </button>
+            <button class="btn btn-secondary" @onclick="args => SetPoint(-1, args)"> <i class="bi bi-x-octagon-fill"></i> Skip </button>
+            @if (user.IsAdmin)
+            {
+                <button class="btn btn-primary" @onclick="clearPoint"> <i class="bi bi-eraser-fill"></i> Clear </button>
+                <button class="btn btn-primary" @onclick="togglePoint">
+                    @if (isShowPoint)
+                    {
+                        <i class="bi bi-eye-slash-fill"></i> <span> Hide</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-eye-fill"></i> <span>Show</span>
+                    }
+                </button>
+            }
+            <button class="btn btn-primary" @onclick="Refresh"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
         </div>
-    </EditForm>
+    </div>
 
+    <div class="col-6">
+        @if (user.IsAdmin)
+        {
+            <EditForm Model=@card>
+            <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col-7">
+                        <InputText @bind-Value=card.Name type="text" class="form-control" />
+                    </div>
+                    <div class="col-2">
+                        <InputNumber @bind-Value=card.Point type="number" class="form-control" />
+                    </div>
+                    <div class="col-3">
+                        @if (!isCardEdit)
+                        {
+                            <button class="btn btn-primary" @onclick="addCard"> <i class="bi bi-plus"></i> </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary" @onclick="updateCard"> <i class="bi bi-pen-fill"></i>  </button>
+                            <button class="btn btn-secondary" @onclick="cancelCardEdit"> <i class="bi bi-backspace-fill"></i> </button>
+                            <button class="btn btn-danger" @onclick="args => deleteCard(card, args)"> <i class="bi bi-trash-fill"></i> </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </div>
 </div>
 
 <div class="mt-2">
@@ -44,22 +81,54 @@
             <div class="list-group">
                 @foreach (var user in users)
                 {
-                    <div class="list-group-item d-flex">
-                        <div class="d-flex justify-content-between">
-                            <div> @user.FullName </div>--------------->
-                            <div> @user.Point </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <div>
+                            @if (!user.IsAdmin)
+                            {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person"></i></span>}
+                            else
+                            {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person-fill"></i></span>}
+                            @user.FullName
+                        </div>
+                        <div>
+                            @if (user.Id == UserId)
+                            {
+                                @user.Point
+                            }
+                            else if (!user.IsShowPoint && user.Point == 0)
+                            {
+                                <i class="bi bi-hourglass-split"></i>
+                            }
+                            else if (user.Point == -1)
+                            {
+                                <i class="bi bi-x-octagon-fill"></i>
+                            }
+                            else if (user.IsShowPoint && user.Point > 0)
+                            {
+                                @user.Point
+                            }
+                            else if (!user.IsShowPoint && user.Point > 0)
+                            {
+                                <i class="bi bi-eye-slash-fill"></i>
+                            }
                         </div>
                     </div>
                 }
             </div>
         </div>
         <div class="col">
-            <ul class="list-group">
+            <div class="list-group">
                 @foreach (var card in cards)
                 {
-                    <li class="list-group-item">@card.Name --->  @card.Point |</li>
+                    <div class="list-group-item d-flex justify-content-between" @onclick="args => editCard(card, args)">
+                        <div> @card.Name </div>
+                        <div> @card.Point </div>
+                    </div>
                 }
-            </ul>
+                <div class="border border-primary list-group-item d-flex justify-content-between">
+                    <div> Total </div>
+                    <div> @sum  </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -75,29 +144,111 @@
     private List<User> users = new List<User>();
     private List<Card> cards = new List<Card>();
     private Card card = new Card();
+    private User user = new User();
+    private double sum = 0;
+    private bool isCardEdit = false;
+    private bool isShowPoint = false;
 
-    private void SetPoint(double point, MouseEventArgs args)
+    private async Task SetPoint(double point, MouseEventArgs args)
     {
         var user = users.FirstOrDefault(x => x.Id == UserId);
-        if (user != null) user.Point = point;
-        DbContext.Update(user);
-        DbContext.SaveChanges();
+        if (user != null)
+        {
+            user.Point = point;
+            await _userService.Update(user);
+        }
     }
 
-    private void addCard ()
+    private void editCard(Card editCard, MouseEventArgs args)
     {
-        DbContext.Cards.Add(card);
-        DbContext.SaveChanges();
+        isCardEdit = true;
+        card = editCard;
     }
 
-    private void UpdateUserPoint()
+    private void cancelCardEdit()
     {
-        users = DbContext.Users.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
+        isCardEdit = false;
+        card = new Card();
     }
 
-    protected override void OnInitialized()
+    private void deleteCard(Card deleteCard, MouseEventArgs args)
     {
-        users = DbContext.Users.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
-        cards = DbContext.Cards.Where(x => x.RoomId == Convert.ToInt32(RoomId)).ToList();
+        isCardEdit = false;
+        _cardService.DeleteCard(card);
+        cards.Remove(card);
+    }
+
+    private async Task updateCard()
+    {
+        if (card.Id != 0 && !string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
+        {
+            await _cardService.UpdateCard(card);
+            Card cardObj = cards.FirstOrDefault(x => x.Id == card.Id);
+            cardObj = card;
+            card = new Card();
+            isCardEdit = false;
+            sum = cards.Sum(x => x.Point);
+        }
+    }
+
+    private async Task addCard()
+    {
+        if (!string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
+        {
+            card.Id = 0;
+            card.RoomId = Convert.ToInt32(RoomId);
+            await _cardService.AddCard(card);
+            cards.Add(card);
+            sum = cards.Sum(x => x.Point);
+            card = new Card();
+        }
+    }
+
+    private async Task Refresh()
+    {
+        users = await _userService.GetUsersBy(Convert.ToInt32(RoomId));
+    }
+
+    private async Task clearPoint()
+    {
+        users.All(x => { x.Point = 0; x.IsShowPoint = false; return true; });
+        await _userService.Update(users);
+        isShowPoint = false;
+    }
+
+    private async Task togglePoint()
+    {
+        isShowPoint = !isShowPoint;
+        users.All(x => { x.IsShowPoint = !x.IsShowPoint; return true; });
+        await _userService.Update(users);
+    }
+
+    private async Task toggleAdmin(User adminUser, MouseEventArgs args)
+    {
+        if (user.IsAdmin)
+        {
+            adminUser.IsAdmin = !adminUser.IsAdmin;
+            await _userService.Update(user);
+        }
+    }
+
+    private async Task copyTextToClipboard()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", $"http://localhost/{RoomId}");
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    protected async override void OnInitialized()
+    {
+        users = await _userService.GetUsersBy(Convert.ToInt32(RoomId));
+        cards = await _cardService.GetCardsBy(Convert.ToInt32(RoomId));
+        user = users.FirstOrDefault(x => x.Id == UserId);
+        sum = cards.Sum(x => x.Point);
     }
 }
