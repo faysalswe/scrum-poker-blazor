@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScrumPoker.Validators;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -12,6 +13,7 @@ namespace ScrumPoker.Model
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [Required]
+        [RegexValidator(Pattern = @"\s|[A-Z]")]
         public string UserName { get; set; }
         [Required]
         public string FullName { get; set; }

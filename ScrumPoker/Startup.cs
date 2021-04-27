@@ -31,6 +31,7 @@ namespace ScrumPoker
             services.AddDbContext<AppDBContext>(options =>
             {
                 options.LogTo(x => Debug.Write(x));
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 options.UseSqlite("Data Source=./db/scrum_poker.db");
             });
 

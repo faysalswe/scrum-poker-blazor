@@ -7,7 +7,7 @@
 
 <EditForm Model=@user style="margin-top: 40vh" OnValidSubmit="@createOrJoin">
     <DataAnnotationsValidator />
-    <ValidationSummary />
+    <ValidationSummary/>
     <div class="row">
         <div class="col-5">
             <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="Ex: username 'einstein_a'" />

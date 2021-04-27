@@ -49,7 +49,6 @@
         @if (user.IsAdmin)
         {
             <EditForm Model=@card>
-                <DataAnnotationsValidator />
                 <div class="row">
                     <div class="col-7">
                         <InputText @bind-Value=card.Name type="text" class="form-control" />
@@ -58,15 +57,17 @@
                         <InputNumber @bind-Value=card.Point type="number" class="form-control" />
                     </div>
                     <div class="col-3">
-                        @if (!isCardEdit)
+                        <button class="btn btn-primary" @onclick="addOrUpdateCard">
+                            <i class="@(card.Id > 0 ? "bi bi-pen-fill" : "bi bi-plus-square-fill")"></i>
+                        </button>
+                        <button class="btn btn-secondary" @onclick="resetCard"> <i class="bi bi-backspace-fill"></i> </button>
+                        @if (card.Id > 0)
                         {
-                            <button class="btn btn-primary" @onclick="addCard"> <i class="bi bi-plus"></i> </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-primary" @onclick="updateCard"> <i class="bi bi-pen-fill"></i>  </button>
-                            <button class="btn btn-secondary" @onclick="cancelCardEdit"> <i class="bi bi-backspace-fill"></i> </button>
-                            <button class="btn btn-danger" @onclick="args => deleteCard(card, args)"> <i class="bi bi-trash-fill"></i> </button>
+                            <button class="btn btn-danger"
+                                    @onclick="args => deleteCard(card, args)"
+                                    @onclick:stopPropagation="true">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
                         }
                     </div>
                 </div>
@@ -87,7 +88,7 @@
                             {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person"></i></span>}
                             else
                             {<span @onclick="args => toggleAdmin(user, args)"><i class="bi bi-person-fill"></i></span>}
-                        <span class="@(user.Id == UserId ? "user-indication" : "")"> @user.FullName </span> 
+                            <span class="@(user.Id == UserId ? "user-indication" : "")"> @user.FullName </span>
                         </div>
                         <div>
                             @if (user.Point == 0)
@@ -132,11 +133,11 @@
 
 
 @code {
-    [Parameter]
-    public string UserId { get; set; }
+        [Parameter]
+        public string UserId { get; set; }
 
-    [Parameter]
-    public string RoomId { get; set; }
+        [Parameter]
+        public string RoomId { get; set; }
 
     private List<User> users = new List<User>();
     private List<Card> cards = new List<Card>();
@@ -144,7 +145,6 @@
     private User user = new User();
     private Room room = new Room();
     private double sum = 0;
-    private bool isCardEdit = false;
 
     private async Task SetPoint(double point, MouseEventArgs args)
     {
@@ -158,44 +158,49 @@
 
     private void editCard(Card editCard, MouseEventArgs args)
     {
-        isCardEdit = true;
-        card = editCard;
+        card = new Card
+        {
+            Id = editCard.Id,
+            Name = editCard.Name,
+            Point = editCard.Point,
+            RoomId = editCard.RoomId
+        };
     }
 
-    private void cancelCardEdit()
+    private void resetCard()
     {
-        isCardEdit = false;
         card = new Card();
     }
 
     private void deleteCard(Card deleteCard, MouseEventArgs args)
     {
-        isCardEdit = false;
         _cardService.DeleteCard(card);
         cards.Remove(card);
     }
 
-    private async Task updateCard()
-    {
-        if (card.Id != 0 && !string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
-        {
-            await _cardService.UpdateCard(card);
-            Card cardObj = cards.FirstOrDefault(x => x.Id == card.Id);
-            cardObj = card;
-            card = new Card();
-            isCardEdit = false;
-            sum = cards.Sum(x => x.Point);
-        }
-    }
-
-    private async Task addCard()
+    private async Task addOrUpdateCard()
     {
         if (!string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
         {
-            card.Id = 0;
-            card.RoomId = RoomId;
-            await _cardService.AddCard(card);
-            cards.Add(card);
+            if (card.Id > 0)
+            {
+                await _cardService.UpdateCard(card);
+                Card cardObj = cards.FirstOrDefault(x => x.Id == card.Id);
+                cardObj.Name = card.Name;
+                cardObj.Point = card.Point;
+            }
+            else
+            {
+                var newCard = new Card
+                {
+                    RoomId = RoomId,
+                    Name = card.Name,
+                    Point = card.Point
+                };
+                await _cardService.AddCard(newCard);
+                cards.Add(newCard);
+            }
+
             sum = cards.Sum(x => x.Point);
             card = new Card();
         }
@@ -204,6 +209,7 @@
     private async Task Refresh()
     {
         users = await _userService.GetUsersBy(RoomId);
+        cards = await _cardService.GetCardsBy(RoomId);
         room = await _roomService.Get(RoomId);
     }
 
@@ -235,7 +241,7 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", $"http://localhost/{RoomId}");
+            await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", $"{NavigationManager.BaseUri}{RoomId}");
         }
         catch (Exception ex)
         {
