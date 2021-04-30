@@ -20,15 +20,9 @@ namespace ScrumPoker
                 .AddCommandLine(args)
                 .Build();
 
-
-            var hostUrl = configuration["hosturl"];
-            if (string.IsNullOrEmpty(hostUrl))
-                hostUrl = "http://0.0.0.0:6000";
-
-
             var host = new WebHostBuilder()
-                .UseKestrel()                
-                .UseUrls(hostUrl)   // <!-- this 
+                .UseKestrel()
+                .UseUrls("http://0.0.0.0:5000")
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>()
