@@ -11,7 +11,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using ScrumPoker.Services;
+using StackExchange.Redis.Extensions.Newtonsoft;
+using StackExchange.Redis.Extensions.Core.Configuration;
 
 namespace ScrumPoker
 {
@@ -20,6 +21,7 @@ namespace ScrumPoker
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
         }
 
         public IConfiguration Configuration { get; }
@@ -28,19 +30,30 @@ namespace ScrumPoker
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<AppDBContext>(options =>
-            {
-                options.LogTo(x => Debug.Write(x));
-                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                options.UseSqlite("Data Source=./db/scrum_poker.db");
-            });
-
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<ICardService, CardService>();
-            services.AddTransient<IRoomService, RoomService>();
-
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
+            #region Redis Config
+
+            RedisConfiguration redisConfgiuration = new RedisConfiguration()
+            {
+                Password = null,
+                AllowAdmin = true,
+                Database = 0,
+                ConnectTimeout = 6000,
+                Ssl = false,
+                Hosts = new RedisHost[]
+                {
+                   new RedisHost
+                   {
+                       Host = "104.155.45.60",
+                       Port = 6379
+                   }
+                }
+            };
+
+            services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfgiuration);
+            #endregion
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,13 +1,13 @@
 ﻿@page "/"
 @page "/{RoomId}"
 @using ScrumPoker.Model
-@using ScrumPoker.Services
-@inject IUserService _userService
+@using StackExchange.Redis.Extensions.Core.Abstractions;
+@*@inject IRedisCacheClient RedisCacheClient*@
 @inject NavigationManager NavigationManager
 
 <EditForm Model=@user style="margin-top: 40vh" OnValidSubmit="@createOrJoin">
     <DataAnnotationsValidator />
-    <ValidationSummary/>
+    <ValidationSummary />
     <div class="row">
         <div class="col-5">
             <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="Ex: username 'einstein_a'" />
@@ -32,17 +32,19 @@
 
     private void createOrJoin()
     {
+        string key = Guid.NewGuid().ToString();
+        object data = "AMR SONAR BANGLA AMI TOMAY BHALOBASI";
+
+        //RedisCacheClient.Db0.AddAsync(key, data, DateTime.UtcNow.AddDays(5));
 
         if (RoomId == null)
         {
             user.Room = new Room { CreatedAt = DateTime.UtcNow, IsShowPoint = false };
             user.IsAdmin = true;
-            _userService.Add(user);
         }
         else
         {
             user.RoomId = RoomId;
-            _userService.Add(user);
         }
 
         NavigationManager.NavigateTo($"/{user.RoomId}/{user.Id}");

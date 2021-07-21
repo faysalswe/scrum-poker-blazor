@@ -9,7 +9,6 @@ namespace ScrumPoker.Model
 {
     public class Card
     {
-        [Key]
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }

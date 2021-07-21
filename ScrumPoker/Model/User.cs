@@ -10,7 +10,6 @@ namespace ScrumPoker.Model
 {
     public class User
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [Required]
         [RegexValidator(Pattern = @"\s|[A-Z]")]

@@ -12,20 +12,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
+    <PackageReference Include="StackExchange.Redis.Extensions.AspNetCore" Version="7.1.1" />
+    <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="7.1.1" />
+    <PackageReference Include="StackExchange.Redis.Extensions.Newtonsoft" Version="7.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="db\" />
     <Folder Include="wwwroot\css\bootstrap\fonts\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="db\scrum_poker.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="db\scrum_poker.db-shm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

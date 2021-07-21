@@ -9,7 +9,6 @@ namespace ScrumPoker.Model
 {
     public class Room
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         public bool IsShowPoint { get; set; }
         public DateTime CreatedAt { get; set; }
