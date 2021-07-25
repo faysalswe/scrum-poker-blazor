@@ -181,7 +181,7 @@
     private async Task toggleAdmin(User adminUser, MouseEventArgs args)
     {
         await PullDatabase();
-        if (user.IsAdmin)
+        if (user.IsAdmin && user.Id != adminUser.Id)
         {
             User objUser = room.Users.FirstOrDefault(x => x.Id == adminUser.Id);
             if (objUser != null)

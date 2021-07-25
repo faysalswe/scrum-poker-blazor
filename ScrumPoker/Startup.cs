@@ -32,25 +32,11 @@ namespace ScrumPoker
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddOptions();
 
             #region Redis Config
 
-            RedisConfiguration redisConfgiuration = new RedisConfiguration()
-            {
-                Password = null,
-                AllowAdmin = true,
-                Database = 0,
-                ConnectTimeout = 6000,
-                Ssl = false,
-                Hosts = new RedisHost[]
-                {
-                   new RedisHost
-                   {
-                       Host = "localhost",
-                       Port = 6379
-                   }
-                }
-            };
+            RedisConfiguration redisConfgiuration = Configuration.GetSection("AppSettings:Redis").Get<RedisConfiguration>();
 
             services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfgiuration);
             #endregion
