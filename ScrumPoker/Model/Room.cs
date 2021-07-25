@@ -11,6 +11,7 @@ namespace ScrumPoker.Model
     {
         public string Id { get; set; }
         public bool IsShowPoint { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public List<User> Users { get; set; } = new List<User>();
+        public List<Card> Cards { get; set; } = new List<Card>();
     }
 }

@@ -1,6 +1,8 @@
 ﻿@page "/{RoomId}/{UserId}"
 @using ScrumPoker.Model
+@using StackExchange.Redis.Extensions.Core.Abstractions;
 @inject NavigationManager NavigationManager
+@inject IRedisCacheClient RedisCacheClient
 @inject IJSRuntime JSRuntime
 
 <div class="row mt-2">
@@ -37,7 +39,7 @@
                     }
                 </button>
             }
-            <button class="btn btn-primary" @onclick="Refresh"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
+            <button class="btn btn-primary" @onclick="PullDatabase"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
         </div>
     </div>
 
@@ -76,7 +78,7 @@
     <div class="row">
         <div class="col">
             <div class="list-group">
-                @foreach (var user in users)
+                @foreach (var user in room.Users)
                 {
                     <div class="list-group-item d-flex justify-content-between">
                         <div>
@@ -111,7 +113,7 @@
         </div>
         <div class="col">
             <div class="list-group">
-                @foreach (var card in cards)
+                @foreach (var card in room.Cards)
                 {
                     <div class="list-group-item d-flex justify-content-between" @onclick="args => editCard(card, args)">
                         <div> @card.Name </div>
@@ -129,97 +131,65 @@
 
 
 @code {
-        [Parameter]
-        public string UserId { get; set; }
+    [Parameter]
+    public string UserId { get; set; }
 
-        [Parameter]
-        public string RoomId { get; set; }
+    [Parameter]
+    public string RoomId { get; set; }
 
-    private List<User> users = new List<User>();
-    private List<Card> cards = new List<Card>();
     private Card card = new Card();
     private User user = new User();
     private Room room = new Room();
+
     private double sum = 0;
+
+    //protected override void OnParametersSet(){}
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PullDatabase();
+        user = room.Users.FirstOrDefault(x => x.Id == UserId);
+        sum = room.Cards.Sum(x => x.Point);
+    }
 
     private async Task SetPoint(double point, MouseEventArgs args)
     {
-        var user = users.FirstOrDefault(x => x.Id == UserId);
-        if (user != null)
+        await PullDatabase();
+        User objUser = room.Users.FirstOrDefault(x => x.Id == UserId);
+        if (objUser != null)
         {
-            user.Point = point;
+            objUser.Point = point;
         }
+        await PushDatabase();
     }
 
-    private void editCard(Card editCard, MouseEventArgs args)
+    private async Task togglePoint()
     {
-        card = new Card
-        {
-            Id = editCard.Id,
-            Name = editCard.Name,
-            Point = editCard.Point,
-            RoomId = editCard.RoomId
-        };
-    }
-
-    private void resetCard()
-    {
-        card = new Card();
-    }
-
-    private void deleteCard(Card deleteCard, MouseEventArgs args)
-    {
-        cards.Remove(card);
-    }
-
-    private async Task addOrUpdateCard()
-    {
-        if (!string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
-        {
-            if (card.Id > 0)
-            {
-                Card cardObj = cards.FirstOrDefault(x => x.Id == card.Id);
-                cardObj.Name = card.Name;
-                cardObj.Point = card.Point;
-            }
-            else
-            {
-                var newCard = new Card
-                {
-                    RoomId = RoomId,
-                    Name = card.Name,
-                    Point = card.Point
-                };
-                
-                cards.Add(newCard);
-            }
-
-            sum = cards.Sum(x => x.Point);
-            card = new Card();
-        }
-    }
-
-    private void Refresh()
-    {
-    }
-
-    private void clearPoint()
-    {
-        users.All(x => { x.Point = 0; return true; });
-        room.IsShowPoint = false;
-    }
-
-    private void togglePoint()
-    {
+        await PullDatabase();
         room.IsShowPoint = !room.IsShowPoint;
+        await PushDatabase();
     }
 
-    private void toggleAdmin(User adminUser, MouseEventArgs args)
+    private async Task clearPoint()
     {
+        await PullDatabase();
+        room.Users.All(x => { x.Point = 0; return true; });
+        room.IsShowPoint = false;
+        await PushDatabase();
+    }
+
+    private async Task toggleAdmin(User adminUser, MouseEventArgs args)
+    {
+        await PullDatabase();
         if (user.IsAdmin)
         {
-            adminUser.IsAdmin = !adminUser.IsAdmin;
+            User objUser = room.Users.FirstOrDefault(x => x.Id == adminUser.Id);
+            if (objUser != null)
+            {
+                objUser.IsAdmin = !objUser.IsAdmin;
+            }
         }
+        await PushDatabase();
     }
 
     private async Task copyTextToClipboard()
@@ -234,9 +204,74 @@
         }
     }
 
-    protected override void OnInitialized()
+
+    /// Card functionality
+
+    private async Task addOrUpdateCard()
     {
-        user = users.FirstOrDefault(x => x.Id == UserId);
-        sum = cards.Sum(x => x.Point);
+        if (!string.IsNullOrWhiteSpace(card.Name) && card.Point > 0)
+        {
+            if (card.Id > 0)
+            {
+                Card cardObj = room.Cards.FirstOrDefault(x => x.Id == card.Id);
+                cardObj.Name = card.Name;
+                cardObj.Point = card.Point;
+            }
+            else
+            {
+                await PullDatabase();
+                var newCard = new Card
+                {
+                    Id = room.Cards.Count + 1,
+                    Name = card.Name,
+                    Point = card.Point
+                };
+
+                room.Cards.Add(newCard);
+            }
+
+            sum = room.Cards.Sum(x => x.Point);
+            card = new Card();
+            await PushDatabase();
+        }
     }
+
+    private async Task editCard(Card editCard, MouseEventArgs args)
+    {
+        await PullDatabase();
+        Card cardObj = room.Cards.FirstOrDefault(x => x.Id == editCard.Id);
+        if (cardObj != null)
+        {
+            card = editCard;
+        }
+    }
+
+    private void resetCard()
+    {
+        card = new Card();
+    }
+
+    private async Task deleteCard(Card deleteCard, MouseEventArgs args)
+    {
+        await PullDatabase();
+        Card cardObj = room.Cards.FirstOrDefault(x => x.Id == deleteCard.Id);
+        if (cardObj != null)
+        {
+            room.Cards.Remove(cardObj);
+            await PushDatabase();
+            resetCard();
+        }
+    }
+
+    private async Task PushDatabase()
+    {
+        await RedisCacheClient.Db0.AddAsync(RoomId, room,
+        DateTime.UtcNow.AddDays(5));
+    }
+
+    private async Task PullDatabase()
+    {
+        room = await RedisCacheClient.Db0.GetAsync<Room>(RoomId);
+    }
+
 }

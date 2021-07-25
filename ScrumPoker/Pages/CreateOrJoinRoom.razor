@@ -2,7 +2,7 @@
 @page "/{RoomId}"
 @using ScrumPoker.Model
 @using StackExchange.Redis.Extensions.Core.Abstractions;
-@*@inject IRedisCacheClient RedisCacheClient*@
+@inject IRedisCacheClient RedisCacheClient
 @inject NavigationManager NavigationManager
 
 <EditForm Model=@user style="margin-top: 40vh" OnValidSubmit="@createOrJoin">
@@ -30,23 +30,40 @@
 
     private string ButtonName => this.RoomId == null ? "Create Room" : "Join Room";
 
-    private void createOrJoin()
+    private async Task createOrJoin()
     {
-        string key = Guid.NewGuid().ToString();
-        object data = "AMR SONAR BANGLA AMI TOMAY BHALOBASI";
-
-        //RedisCacheClient.Db0.AddAsync(key, data, DateTime.UtcNow.AddDays(5));
+        user.Id = Guid.NewGuid().ToString();
 
         if (RoomId == null)
         {
-            user.Room = new Room { CreatedAt = DateTime.UtcNow, IsShowPoint = false };
-            user.IsAdmin = true;
+            RoomId = Guid.NewGuid().ToString();
+
+            object data = new Room
+            {
+                Id = RoomId,
+                IsShowPoint = false,
+                Users = new List<User>
+                {
+                    new User {
+                        Id = user.Id,
+                        UserName = user.UserName,
+                        FullName = user.FullName,
+                        IsAdmin = true
+                    }
+                },
+                Cards = new List<Card>()
+            };
+            await RedisCacheClient.Db0.AddAsync(RoomId, data, DateTime.UtcNow.AddDays(5));
         }
         else
         {
-            user.RoomId = RoomId;
+            Room room = await RedisCacheClient.Db0.GetAsync<Room>(RoomId);
+            RoomId = room.Id;
+            room.Users.Add(new User { Id= user.Id, FullName = user.FullName, UserName = user.UserName, IsAdmin = false });
+
+            await RedisCacheClient.Db0.AddAsync(RoomId, room, DateTime.UtcNow.AddDays(5));
         }
 
-        NavigationManager.NavigateTo($"/{user.RoomId}/{user.Id}");
+        NavigationManager.NavigateTo($"/{RoomId}/{user.Id}");
     }
 }

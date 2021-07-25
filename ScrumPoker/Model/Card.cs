@@ -14,9 +14,5 @@ namespace ScrumPoker.Model
         public string Name { get; set; }
         [Required]
         public double Point { get; set; }
-
-        [ForeignKey("Room")]
-        public string RoomId { get; set; }
-        public Room Room { get; set; }
     }
 }

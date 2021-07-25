@@ -46,7 +46,7 @@ namespace ScrumPoker
                 {
                    new RedisHost
                    {
-                       Host = "104.155.45.60",
+                       Host = "localhost",
                        Port = 6379
                    }
                 }
