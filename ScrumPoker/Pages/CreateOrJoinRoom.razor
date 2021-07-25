@@ -9,13 +9,13 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
     <div class="row">
-        <div class="col-5">
+        <div class="col-5 col-sm-12 m-sm-3">
             <InputText @bind-Value=user.UserName type="text" class="form-control" placeholder="Ex: username 'einstein_a'" />
         </div>
-        <div class="col-5">
+        <div class="col-5 col-sm-12 m-sm-3">
             <InputText @bind-Value=user.FullName type="text" class="form-control" placeholder="Ex: name 'Albert Einstein'" />
         </div>
-        <div class="col-2">
+        <div class="col-2 col-sm-12 m-sm-3">
             <button class="btn btn-outline-primary" type="submit"> @ButtonName </button>
         </div>
     </div>

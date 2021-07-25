@@ -7,43 +7,47 @@
 
 <div class="row mt-2">
     <div class="col">
-        <div class="d-flex justify-content-between">
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(0.5, args)"> 0.5 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(1, args)"> 1 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(2, args)"> 2 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(3, args)"> 3 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(5, args)"> 5 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(8, args)"> 8 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(13, args)"> 13 </div>
-            <div class="card p-4 pointer point-card-text" @onclick="args => SetPoint(21, args)"> 21 </div>
+        <div class="d-flex justify-content-sm-start justify-content-md-between flex-sm-wrap">
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(0.5, args)"> 0.5 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(1, args)"> 1 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(2, args)"> 2 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(3, args)"> 3 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(5, args)"> 5 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(8, args)"> 8 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(13, args)"> 13 </div>
+            <div class="card p-4 pointer point-card-text m-sm-2 shadow" @onclick="args => SetPoint(21, args)"> 21 </div>
         </div>
     </div>
 </div>
 
 <div class="row mt-2">
-    <div class="col-6">
+    <div class="col-md-6 mb-sm-2">
         <div class="d-flex justify-content-between">
-            <button class="btn btn-primary" @onclick="copyTextToClipboard"> <i class="bi bi-link-45deg"></i> Copy Link </button>
+            <button class="btn btn-outline-primary" @onclick="copyTextToClipboard"> <i class="bi bi-link-45deg"></i> Copy Link </button>
             <button class="btn btn-secondary" @onclick="args => SetPoint(-1, args)"> <i class="bi bi-x-octagon-fill"></i> Skip </button>
             @if (user.IsAdmin)
             {
-                <button class="btn btn-primary" @onclick="clearPoint"> <i class="bi bi-eraser-fill"></i> Clear </button>
-                <button class="btn btn-primary" @onclick="togglePoint">
-                    @if (room.IsShowPoint)
-                    {
+                <button class="btn btn-warning" @onclick="clearPoint"> <i class="bi bi-eraser-fill"></i> Clear </button>
+
+                @if (room.IsShowPoint)
+                {
+                    <button class="btn btn-outline-success" @onclick="togglePoint">
                         <i class="bi bi-eye-slash-fill"></i> <span> Hide</span>
-                    }
-                    else
-                    {
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-success" @onclick="togglePoint">
                         <i class="bi bi-eye-fill"></i> <span>Show</span>
-                    }
-                </button>
+                    </button>
+                }
+
             }
-            <button class="btn btn-primary" @onclick="PullDatabase"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
-        </div>
+             <button class="btn btn-primary" @onclick="PullDatabase"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
+         </div>
     </div>
 
-    <div class="col-6">
+    <div class="col-md-6">
         @if (user.IsAdmin)
         {
             <EditForm Model=@card>
@@ -76,7 +80,7 @@
 
 <div class="mt-2">
     <div class="row">
-        <div class="col">
+        <div class="col-md-6 mb-sm-2">
             <div class="list-group">
                 @foreach (var user in room.Users)
                 {
@@ -113,7 +117,7 @@
                 }
             </div>
         </div>
-        <div class="col">
+        <div class="col-md-6">
             <div class="list-group">
                 @foreach (var card in room.Cards)
                 {
@@ -165,11 +169,11 @@
     {
         await PullDatabase();
         User objUser = room.Users.FirstOrDefault(x => x.Id == UserId);
-        if (objUser != null)
+        if (objUser != null && !room.IsShowPoint)
         {
             objUser.Point = point;
+            await PushDatabase();
         }
-        await PushDatabase();
     }
 
     private async Task togglePoint()
