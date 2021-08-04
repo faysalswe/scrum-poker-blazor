@@ -211,7 +211,7 @@
         {
             await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", $"{NavigationManager.BaseUri}{RoomId}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new Exception("Copy shared link is not working");
         }
