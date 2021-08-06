@@ -1,6 +1,7 @@
 ﻿@page "/{RoomId}/{UserId}"
 @using ScrumPoker.Model
 @using StackExchange.Redis.Extensions.Core.Abstractions;
+@using System.Text;
 @inject NavigationManager NavigationManager
 @inject IRedisCacheClient RedisCacheClient
 @inject IJSRuntime JSRuntime
@@ -43,8 +44,8 @@
                 }
 
             }
-             <button class="btn btn-primary" @onclick="PullDatabase"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
-         </div>
+            <button class="btn btn-primary" @onclick="PullDatabase"> <i class="bi bi-arrow-counterclockwise"></i> Refresh </button>
+        </div>
     </div>
 
     <div class="col-md-6">
@@ -103,7 +104,7 @@
                             }
                             else if (user.Id == UserId || room.IsShowPoint)
                             {
-                                <span class="fs-6"> @user.Point </span> 
+                                <span class="fs-6"> @user.Point </span>
                             }
                             else if (!room.IsShowPoint && user.Point > 0)
                             {
@@ -159,7 +160,8 @@
         {
             sum = room.Cards.Sum(x => x.Point);
 
-        } else
+        }
+        else
         {
             NavigationManager.NavigateTo($"/{RoomId}");
         }
@@ -211,9 +213,9 @@
         {
             await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", $"{NavigationManager.BaseUri}{RoomId}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw new Exception("Copy shared link is not working");
+            throw new JSException(ex.ToFullBlownString());
         }
     }
 
@@ -297,5 +299,4 @@
     {
         room = await RedisCacheClient.Db0.GetAsync<Room>(RoomId);
     }
-
 }
