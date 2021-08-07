@@ -215,7 +215,8 @@
         }
         catch (Exception ex)
         {
-            throw new JSException(ex.ToFullBlownString());
+            // throw new JSException(ex.ToFullBlownString());
+            await JSRuntime.InvokeVoidAsync("alert", $"{NavigationManager.BaseUri}{RoomId}");
         }
     }
 
