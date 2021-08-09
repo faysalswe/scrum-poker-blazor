@@ -6,10 +6,10 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["ScrumPoker.csproj", "."]
-RUN dotnet restore "ScrumPoker.csproj"
+COPY ["ScrumPoker/ScrumPoker.csproj", "ScrumPoker/"]
+RUN dotnet restore "ScrumPoker/ScrumPoker.csproj"
 COPY . .
-#WORKDIR "/src"
+WORKDIR "/src/ScrumPoker"
 RUN dotnet build "ScrumPoker.csproj" -c Release -o /app/build
 
 FROM build AS publish
